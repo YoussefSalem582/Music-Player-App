@@ -53,6 +53,7 @@ A Flutter music player application with a modern UI and rich features.
 
 ## Project Structure
 
+```
 lib/
 ├── models/
 │   ├── song.dart
@@ -68,17 +69,19 @@ lib/
 │   ├── custom_appbar.dart
 │   └── mini_player.dart
 └── main.dart
+```
 
 ## Screenshots
 
 ### Home Screen
-![img_1.png](img_1.png)
+<img src="img_1.png" width="200">
 
 ### Playlist Screen
-![img_2.png](img_2.png)
+<img src="img_2.png" width="200">
 
 ### Music Player Screen
-![img_4.png](img_4.png)
+<img src="img_4.png" width="200">
+
 
 ## Contributing
 
