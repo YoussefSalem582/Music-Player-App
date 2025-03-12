@@ -21,7 +21,7 @@ class MiniPlayer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 60,
+        height: 70,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           boxShadow: [
@@ -38,8 +38,8 @@ class MiniPlayer extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: Image.network(
                 currentSong!.coverUrl,
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 fit: BoxFit.cover,
               ),
             ),

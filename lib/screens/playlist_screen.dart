@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/playlist.dart';
 import '../models/song.dart';
 import '../widgets/mini_player.dart';
+import '../services/audio_player_service.dart';
 import 'music_player_screen.dart';
 
 class PlaylistScreen extends StatelessWidget {
@@ -10,6 +11,7 @@ class PlaylistScreen extends StatelessWidget {
   final Song? currentSong;
   final bool isPlaying;
   final VoidCallback onPlayPause;
+  final AudioPlayerService audioPlayerService; // Add this line
 
   const PlaylistScreen({
     required this.playlist,
@@ -17,6 +19,7 @@ class PlaylistScreen extends StatelessWidget {
     this.currentSong,
     required this.isPlaying,
     required this.onPlayPause,
+    required this.audioPlayerService, // Add this line
   });
 
   @override
@@ -38,36 +41,46 @@ class PlaylistScreen extends StatelessWidget {
                   ),
                   title: Text(
                     song.title,
-                    style: isCurrentSong
-                        ? TextStyle(color: Theme.of(context).primaryColor)
-                        : null,
+                    style:
+                        isCurrentSong
+                            ? TextStyle(color: Theme.of(context).primaryColor)
+                            : null,
                   ),
                   subtitle: Text(song.artist),
-                  trailing: isCurrentSong && isPlaying
-                      ? Icon(
-                          Icons.equalizer,
-                          color: Theme.of(context).primaryColor,
-                        )
-                      : null,
+                  trailing:
+                      isCurrentSong && isPlaying
+                          ? Icon(
+                            Icons.equalizer,
+                            color: Theme.of(context).primaryColor,
+                          )
+                          : null,
                   onTap: () => onSongTap(song),
                 );
               },
             ),
           ),
           if (currentSong != null)
-            MiniPlayer(
-              currentSong: currentSong,
-              isPlaying: isPlaying,
-              onPlayPause: onPlayPause,
-              onTap: () {
-                // Navigate to player screen
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => MusicPlayerScreen(),
-                  ),
-                );
-              },
-            ),
+            if (currentSong != null)
+              MiniPlayer(
+                currentSong: currentSong,
+                isPlaying: isPlaying,
+                onPlayPause: onPlayPause,
+                onTap: () {
+                  Navigator.of(context).push(
+                    // Changed from pushReplacement to push
+                    MaterialPageRoute(
+                      builder:
+                          (context) => MusicPlayerScreen(
+                            audioPlayerService: audioPlayerService,
+                            // Pass the existing instance
+                            onPlayPause: onPlayPause,
+                            currentSong: currentSong,
+                            isPlaying: isPlaying,
+                          ),
+                    ),
+                  );
+                },
+              ),
         ],
       ),
     );
