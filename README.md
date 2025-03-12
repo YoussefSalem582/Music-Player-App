@@ -1,16 +1,30 @@
-# music_player_app
+# Music Player App
 
-A new Flutter project.
+A Flutter music player application with a modern UI and rich features.
+
+## Features
+
+- Browse songs in grid or list view
+- Play/pause, previous/next track controls
+- Volume control slider
+- Progress bar with seek functionality
+- Playlist management
+- Mini player with quick access controls
+- Full-screen player with artwork display
+- Background audio playback
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK (3.7.0 or higher)
+- Dart SDK
+- Android Studio / VS Code
+- Android SDK (for Android development)
+- Xcode (for iOS development)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Clone the repository:
+```bash
+git clone https://github.com/YoussefSalem582/music_player_app.git
