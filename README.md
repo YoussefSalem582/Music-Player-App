@@ -12,6 +12,9 @@ A Flutter music player application with a modern UI and rich features.
 - Mini player with quick access controls
 - Full-screen player with artwork display
 - Background audio playback
+- Genre-based playlists
+- Recently played section
+- Featured section
 
 ## Getting Started
 
@@ -74,13 +77,24 @@ lib/
 ## Screenshots
 
 ### Home Screen
-<img src="img_1.png" width="200">
+<img src="img_5.png" width="200">
 
 ### Playlist Screen
-<img src="img_2.png" width="200">
+<img src="img_6.png" width="200">
 
 ### Music Player Screen
-<img src="img_4.png" width="200">
+<img src="img_7.png" width="200">
+
+
+## Additional Information
+
+This project uses the following technologies and frameworks:
+- Flutter
+- Dart
+- Kotlin
+- Java
+- Gradle
+- C++
 
 
 ## Contributing
