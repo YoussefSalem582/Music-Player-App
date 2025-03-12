@@ -1,0 +1,16 @@
+<body>
+<script>
+  window.addEventListener('load', function() {
+    // Prevent audio context auto-suspension
+    if (typeof AudioContext !== 'undefined') {
+      const audioContext = new AudioContext();
+      document.addEventListener('click', () => {
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+      });
+    }
+  });
+</script>
+<script src="flutter_bootstrap.js" async></script>
+</body>
