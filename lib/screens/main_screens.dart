@@ -223,7 +223,7 @@ class _MainScreenState extends State<MainScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 14, 16, 8),
             child: Text(
               'Recently Played',
               style: Theme.of(context).primaryTextTheme.headlineMedium,
@@ -251,15 +251,17 @@ class _MainScreenState extends State<MainScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 20),
+
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 14, 16, 0),
             child: Text(
               'Genres',
               style: Theme.of(context).primaryTextTheme.headlineMedium,
             ),
           ),
           SizedBox(
-            height: 10,
+            height: 0,
             child: ListView.builder(
               physics: const BouncingScrollPhysics(),
               scrollDirection: Axis.horizontal,
@@ -292,7 +294,6 @@ class _MainScreenState extends State<MainScreen>
       ),
     );
   }
-
 
 Widget _buildGenreCard(Playlist playlist) {
   return GestureDetector(
@@ -463,8 +464,10 @@ Widget _buildGenreCard(Playlist playlist) {
                   children: [
                     Text(
                       song.title,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -472,7 +475,9 @@ Widget _buildGenreCard(Playlist playlist) {
                     const SizedBox(height: 4),
                     Text(
                       song.artist,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.6),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -487,70 +492,70 @@ Widget _buildGenreCard(Playlist playlist) {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: customTheme,
-      child: Scaffold(
-        appBar: CustomAppBar(title: 'MusicHub'),
-        body: Stack(
-          children: [
-            PageView(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              children: [
-                _buildHomeScreen(),
-                if (playlists.isNotEmpty)
-                  PlaylistScreen(
-                    playlist: playlists[0],
-                    onSongTap: _handleSongTap,
-                    currentSong: _audioPlayerService.currentSong,
-                    isPlaying: isPlaying,
-                    onPlayPause: _handlePlayPause,
-                    audioPlayerService: _audioPlayerService,
-                  )
-                else
-                  const Center(child: Text('No playlist available')),
-                MusicPlayerScreen(
+@override
+Widget build(BuildContext context) {
+  return Theme(
+    data: customTheme,
+    child: Scaffold(
+      appBar: CustomAppBar(title: 'MusicHub'),
+      body: Stack(
+        children: [
+          PageView(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            children: [
+              _buildHomeScreen(),
+              if (playlists.isNotEmpty)
+                PlaylistScreen(
+                  playlist: playlists[0],
+                  onSongTap: _handleSongTap,
+                  currentSong: _audioPlayerService.currentSong,
+                  isPlaying: isPlaying,
+                  onPlayPause: _handlePlayPause,
                   audioPlayerService: _audioPlayerService,
-                  onPlayPause: _handlePlayPause,
-                  currentSong: _audioPlayerService.currentSong,
-                  isPlaying: isPlaying,
-                ),
-              ],
-            ),
-            if (_audioPlayerService.currentSong != null)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: MiniPlayer(
-                  currentSong: _audioPlayerService.currentSong,
-                  isPlaying: isPlaying,
-                  onPlayPause: _handlePlayPause,
-                  onTap: () => _pageController.jumpToPage(2),
-                ),
+                )
+              else
+                const Center(child: Text('No playlist available')),
+              MusicPlayerScreen(
+                audioPlayerService: _audioPlayerService,
+                onPlayPause: _handlePlayPause,
+                currentSong: _audioPlayerService.currentSong,
+                isPlaying: isPlaying,
               ),
-          ],
-        ),
-        bottomNavigationBar: GradientBottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.playlist_play),
-              label: 'Playlist',
+            ],
+          ),
+          if (_audioPlayerService.currentSong != null && _selectedIndex != 2)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MiniPlayer(
+                currentSong: _audioPlayerService.currentSong,
+                isPlaying: isPlaying,
+                onPlayPause: _handlePlayPause,
+                onTap: () => _pageController.jumpToPage(2),
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.play_circle),
-              label: 'Player',
-            ),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-
+      bottomNavigationBar: GradientBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.playlist_play),
+            label: 'Playlist',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.play_circle),
+            label: 'Player',
+          ),
+        ],
+      ),
+    ),
+  );
+}
   void _onPageChanged(int index) {
     setState(() {
       _selectedIndex = index;
