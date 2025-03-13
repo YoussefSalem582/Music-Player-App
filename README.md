@@ -1,20 +1,22 @@
 # Music Player App
 
-A Flutter music player application with a modern UI and rich features.
+A Flutter music player application with a modern UI and rich features. This app allows users to
+browse, play, and manage their music library with ease. It supports various functionalities such as
+playback controls, volume adjustment, playlist management, and more.
 
 ## Features
 
-- Browse songs in grid or list view
-- Play/pause, previous/next track controls
-- Volume control slider
-- Progress bar with seek functionality
-- Playlist management
-- Mini player with quick access controls
-- Full-screen player with artwork display
-- Background audio playback
-- Genre-based playlists
-- Recently played section
-- Featured section
+- **Browse Songs**: View songs in grid or list view.
+- **Playback Controls**: Play/pause, previous/next track controls.
+- **Volume Control**: Slider to adjust volume.
+- **Progress Bar**: Seek functionality with a progress bar.
+- **Playlist Management**: Create and manage playlists.
+- **Mini Player**: Quick access controls with a mini player.
+- **Full-Screen Player**: Artwork display in a full-screen player.
+- **Background Playback**: Continue playing music in the background.
+- **Genre-Based Playlists**: Browse songs by genre.
+- **Recently Played**: View recently played songs.
+- **Featured Section**: Highlighted featured songs.
 
 ## Getting Started
 
@@ -74,28 +76,51 @@ lib/
 └── main.dart
 ```
 
+### Models
+
+- **Song**: Represents a song with attributes like title, artist, URL, cover URL, genre, etc.
+- **Playlist**: Represents a playlist containing a list of songs and additional metadata.
+
+### Screens
+
+- **MainScreen**: The main screen of the app, displaying featured songs, recently played songs,
+  genres, and all songs.
+- **MusicPlayerScreen**: The full-screen music player with playback controls and song details.
+- **PlaylistScreen**: Displays songs in a specific playlist.
+
+### Services
+
+- **AudioPlayerService**: Manages audio playback using the `just_audio` package.
+- **MusicApiService**: Fetches songs from a remote API.
+
+### Widgets
+
+- **CustomAppBar**: A custom app bar with a gradient background.
+- **MiniPlayer**: A mini player widget for quick access to playback controls.
+
 ## Screenshots
 
 ### Home Screen
-<img src="img_5.png" width="200">
+<img src="img_8.png" width="200">
+<img src="img_9.png" width="200">
 
 ### Playlist Screen
-<img src="img_6.png" width="200">
+
+<img src="img_10.png" width="200">
 
 ### Music Player Screen
-<img src="img_7.png" width="200">
-
+<img src="img_11.png" width="200">
 
 ## Additional Information
 
 This project uses the following technologies and frameworks:
+
 - Flutter
 - Dart
 - Kotlin
 - Java
 - Gradle
 - C++
-
 
 ## Contributing
 
