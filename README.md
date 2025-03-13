@@ -101,14 +101,15 @@ lib/
 ## Screenshots
 
 ### Home Screen
-<img src="img_8.png" width="200">
-<img src="img_9.png" width="200">
+
+<img src="img_8.png" width="200">  <img src="img_9.png" width="200">
 
 ### Playlist Screen
 
 <img src="img_10.png" width="200">
 
 ### Music Player Screen
+
 <img src="img_11.png" width="200">
 
 ## Additional Information
