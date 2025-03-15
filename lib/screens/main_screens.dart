@@ -6,6 +6,7 @@ import '../services/music_api_service.dart';
 import '../widgets/custom_appbar.dart';
 import '../widgets/gradient_bottom_navigation_bar.dart';
 import '../widgets/mini_player.dart';
+import 'liked_songs.dart';
 import 'music_player_screen.dart';
 import 'playlist_screen.dart';
 
@@ -605,17 +606,15 @@ class _MainScreenState extends State<MainScreen>
               onPageChanged: _onPageChanged,
               children: [
                 _buildHomeScreen(),
-                if (playlists.isNotEmpty)
-                  PlaylistScreen(
-                    playlist: playlists[0],
-                    onSongTap: _handleSongTap,
-                    currentSong: _audioPlayerService.currentSong,
-                    isPlaying: isPlaying,
-                    onPlayPause: _handlePlayPause,
-                    audioPlayerService: _audioPlayerService,
-                  )
-                else
-                  const Center(child: Text('No playlist available')),
+                PlaylistScreen(
+                  playlist: playlists[0],
+                  onSongTap: _handleSongTap,
+                  currentSong: _audioPlayerService.currentSong,
+                  isPlaying: isPlaying,
+                  onPlayPause: _handlePlayPause,
+                  audioPlayerService: _audioPlayerService,
+                ),
+                LikedSongsScreen(audioPlayerService: _audioPlayerService),
                 MusicPlayerScreen(
                   audioPlayerService: _audioPlayerService,
                   onPlayPause: _handlePlayPause,
@@ -624,16 +623,16 @@ class _MainScreenState extends State<MainScreen>
                 ),
               ],
             ),
-            if (_audioPlayerService.currentSong != null && _selectedIndex != 2)
+            if (_audioPlayerService.currentSong != null && _selectedIndex != 3)
               Positioned(
+                bottom: 0,
                 left: 0,
                 right: 0,
-                bottom: 0,
                 child: MiniPlayer(
                   currentSong: _audioPlayerService.currentSong,
                   isPlaying: isPlaying,
                   onPlayPause: _handlePlayPause,
-                  onTap: () => _pageController.jumpToPage(2),
+                  onTap: () => _pageController.jumpToPage(3),
                 ),
               ),
           ],
@@ -641,30 +640,22 @@ class _MainScreenState extends State<MainScreen>
         bottomNavigationBar: GradientBottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.playlist_play),
-              label: 'Playlist',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.play_circle),
-              label: 'Player',
-            ),
-          ],
         ),
       ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _pageController.jumpToPage(index);
+    });
   }
 
   void _onPageChanged(int index) {
     setState(() {
       _selectedIndex = index;
     });
-  }
-
-  void _onItemTapped(int index) {
-    _pageController.jumpToPage(index);
   }
 
   @override

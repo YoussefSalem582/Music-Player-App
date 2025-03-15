@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import '../models/song.dart';
 import '../services/audio_player_service.dart';
 
@@ -9,6 +10,7 @@ class MusicPlayerScreen extends StatefulWidget {
   final bool isPlaying;
 
   const MusicPlayerScreen({
+    super.key,
     required this.audioPlayerService,
     required this.onPlayPause,
     required this.currentSong,
@@ -25,117 +27,238 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   Duration position = Duration.zero;
   Song? currentSong;
   double _currentVolume = 1.0;
+  bool _isShuffleOn = false;
+  LoopMode _loopMode = LoopMode.off;
 
   @override
   void initState() {
     super.initState();
+    isPlaying = widget.isPlaying;
+    currentSong = widget.currentSong;
     _initializePlayer();
     _listenToPlayerChanges();
   }
 
   Future<void> _initializePlayer() async {
-    setState(() {
-      currentSong = widget.currentSong;
-      isPlaying = widget.isPlaying;
-    });
-    await widget.audioPlayerService.setVolume(_currentVolume);
+    final volume = await widget.audioPlayerService.volumeStream.first;
+    if (mounted) {
+      setState(() => _currentVolume = volume);
+    }
   }
 
   void _listenToPlayerChanges() {
-    widget.audioPlayerService.positionStream.listen((p) {
-      if (mounted) {
-        setState(() => position = p ?? Duration.zero);
-      }
+    widget.audioPlayerService.positionStream.listen((pos) {
+      if (mounted) setState(() => position = pos ?? Duration.zero);
     });
 
-    widget.audioPlayerService.durationStream.listen((d) {
-      if (mounted) {
-        setState(() => duration = d);
-      }
+    widget.audioPlayerService.durationStream.listen((dur) {
+      if (mounted) setState(() => duration = dur);
     });
 
     widget.audioPlayerService.playerStateStream.listen((state) {
-      if (mounted) {
-        setState(() => isPlaying = state.playing);
-      }
-    });
-
-    widget.audioPlayerService.volumeStream.listen((volume) {
-      if (mounted) {
-        setState(() => _currentVolume = volume);
-      }
+      if (mounted) setState(() => isPlaying = state.playing);
     });
   }
 
   String _formatDuration(Duration? duration) {
     if (duration == null) return '--:--';
-    final minutes = duration.inMinutes.toString().padLeft(2, '0');
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
     return '$minutes:$seconds';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    currentSong = widget.audioPlayerService.currentSong;
-
-    return Scaffold(
-      appBar: AppBar(
+void _showVolumeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      offset: const Offset(0, 8),
-                      blurRadius: 16,
+        child: StatefulBuilder(
+          builder: (context, setState) => Container(
+            width: 300,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.purple,
+                  Colors.black,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.purple.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Volume',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _getVolumeIcon(),
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _currentVolume = _currentVolume == 0 ? 1.0 : 0.0;
+                        });
+                        widget.audioPlayerService.setVolume(_currentVolume);
+                      },
                     ),
                   ],
-                  image:
-                      currentSong?.coverUrl != null
-                          ? DecorationImage(
-                            image: NetworkImage(currentSong!.coverUrl),
-                            fit: BoxFit.cover,
-                          )
-                          : null,
+                ),
+                const SizedBox(height: 10),
+                SliderTheme(
+                  data: SliderThemeData(
+                    activeTrackColor: Colors.white,
+                    inactiveTrackColor: Colors.grey.withOpacity(0.3),
+                    thumbColor: Colors.white,
+                    overlayColor: Colors.purple.withOpacity(0.3),
+                    trackHeight: 4,
+                  ),
+                  child: Slider(
+                    value: _currentVolume,
+                    min: 0.0,
+                    max: 1.0,
+                    onChanged: (value) {
+                      setState(() {
+                        _currentVolume = value;
+                      });
+                      widget.audioPlayerService.setVolume(value);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '${(_currentVolume * 100).round()}%',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }  IconData _getVolumeIcon() {
+    if (_currentVolume == 0) return Icons.volume_off;
+    if (_currentVolume < 0.5) return Icons.volume_down;
+    return Icons.volume_up;
+  }
+
+  @override
+@override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final safeAreaTop = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final artworkSize = screenWidth * 0.75;
+
+    return Container(
+      height: screenHeight - safeAreaTop,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.purple.shade800,
+            Colors.transparent,
+          ],
+          stops: const [0.2, 0.8],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            const SizedBox(height: 20),
+            Hero(
+              tag: 'album-art',
+              child: Container(
+                width: artworkSize,
+                height: artworkSize,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.purple.withOpacity(0.3),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.network(
+                    currentSong?.coverUrl ?? '',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey[900],
+                      child: const Icon(Icons.music_note, size: 80),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 32),
-              Text(
-                currentSong?.title ?? 'No Track Selected',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                currentSong?.artist ?? 'Unknown Artist',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            const SizedBox(height: 40),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
                 children: [
-                  Text(_formatDuration(position)),
-                  Expanded(
+                  Text(
+                    currentSong?.title ?? 'No Track Selected',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    currentSong?.artist ?? 'Unknown Artist',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: Colors.purple[400],
+                      inactiveTrackColor: Colors.white.withOpacity(0.2),
+                      thumbColor: Colors.white,
+                      trackHeight: 4,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    ),
                     child: Slider(
                       value: position.inSeconds.toDouble(),
                       min: 0,
@@ -147,66 +270,170 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                       },
                     ),
                   ),
-                  Text(_formatDuration(duration)),
-                ],
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.volume_down),
-                  Expanded(
-                    child: Slider(
-                      value: _currentVolume,
-                      min: 0.0,
-                      max: 1.0,
-                      onChanged: (value) {
-                        setState(() => _currentVolume = value);
-                        widget.audioPlayerService.setVolume(value);
-                      },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDuration(position),
+                          style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        ),
+                        Text(
+                          _formatDuration(duration),
+                          style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        ),
+                      ],
                     ),
                   ),
-                  const Icon(Icons.volume_up),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    iconSize: 48,
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: widget.audioPlayerService.previous,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _getVolumeIcon(),
+                    color: Colors.white.withOpacity(0.7),
+                    size: 24,
                   ),
-                  const SizedBox(width: 16),
-                  Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue,
+                  onPressed: _showVolumeDialog,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.favorite,
+                    color: currentSong?.isFavorite ?? false
+                        ? Colors.purple[400]
+                        : Colors.white.withOpacity(0.7),
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    if (currentSong != null) {
+                      widget.audioPlayerService.toggleFavorite(currentSong!);
+                      setState(() {});
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.shuffle,
+                    color: _isShuffleOn
+                        ? Colors.purple[400]
+                        : Colors.white.withOpacity(0.7),
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    setState(() => _isShuffleOn = !_isShuffleOn);
+                    widget.audioPlayerService.shuffle();
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.skip_previous,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  onPressed: widget.audioPlayerService.previous,
+                ),
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Colors.purple[300]!, Colors.purple[700]!],
                     ),
-                    child: IconButton(
-                      iconSize: 48,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.purple.withOpacity(0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      isPlaying ? Icons.pause : Icons.play_arrow,
                       color: Colors.white,
-                      icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                      onPressed: widget.onPlayPause,
+                      size: 48,
                     ),
+                    onPressed: widget.onPlayPause,
                   ),
-                  const SizedBox(width: 16),
-                  IconButton(
-                    iconSize: 48,
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: widget.audioPlayerService.next,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.skip_next,
+                    color: Colors.white,
+                    size: 40,
                   ),
-                ],
-              ),
-              const Spacer(),
-            ],
-          ),
+                  onPressed: widget.audioPlayerService.next,
+                ),
+                IconButton(
+                  icon: Icon(
+                    _loopMode == LoopMode.off
+                        ? Icons.repeat
+                        : _loopMode == LoopMode.one
+                            ? Icons.repeat_one
+                            : Icons.repeat,
+                    color: _loopMode != LoopMode.off
+                        ? Colors.purple[400]
+                        : Colors.white.withOpacity(0.7),
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _loopMode = _loopMode == LoopMode.off
+                          ? LoopMode.all
+                          : _loopMode == LoopMode.all
+                              ? LoopMode.one
+                              : LoopMode.off;
+                    });
+                    widget.audioPlayerService.setLoopMode(_loopMode);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
   }
+  IconData _getLoopModeIcon() {
+    switch (_loopMode) {
+      case LoopMode.off:
+        return Icons.repeat;
+      case LoopMode.one:
+        return Icons.repeat_one;
+      case LoopMode.all:
+        return Icons.repeat;
+      default:
+        return Icons.repeat;
+    }
+  }
 
-  @override
-  void dispose() {
-    // Remove the dispose call since we don't own the AudioPlayerService
-    super.dispose();
+  void _toggleLoopMode() {
+    setState(() {
+      switch (_loopMode) {
+        case LoopMode.off:
+          _loopMode = LoopMode.all;
+          break;
+        case LoopMode.all:
+          _loopMode = LoopMode.one;
+          break;
+        case LoopMode.one:
+          _loopMode = LoopMode.off;
+          break;
+      }
+    });
+    widget.audioPlayerService.setLoopMode(_loopMode);
   }
 }
