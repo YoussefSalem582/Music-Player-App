@@ -68,105 +68,154 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     return '$minutes:$seconds';
   }
 
-void _showVolumeDialog() {
+  void _showShareOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[900],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (context) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.share, color: Colors.white),
+                title: const Text(
+                  'Share Song',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  // Implement share functionality here
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Colors.white),
+                title: const Text(
+                  'Copy Link',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  // Implement copy link functionality here
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code, color: Colors.white),
+                title: const Text(
+                  'Share QR Code',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  // Implement QR code sharing functionality here
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showVolumeDialog() {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: StatefulBuilder(
-          builder: (context, setState) => Container(
-            width: 300,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.purple,
-                  Colors.black,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.purple.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Volume',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: StatefulBuilder(
+              builder:
+                  (context, setState) => Container(
+                    width: 300,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.purple, Colors.black],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purple.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: Icon(
-                        _getVolumeIcon(),
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _currentVolume = _currentVolume == 0 ? 1.0 : 0.0;
-                        });
-                        widget.audioPlayerService.setVolume(_currentVolume);
-                      },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Volume',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(_getVolumeIcon(), color: Colors.white),
+                              onPressed: () {
+                                setState(() {
+                                  _currentVolume =
+                                      _currentVolume == 0 ? 1.0 : 0.0;
+                                });
+                                widget.audioPlayerService.setVolume(
+                                  _currentVolume,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        SliderTheme(
+                          data: SliderThemeData(
+                            activeTrackColor: Colors.white,
+                            inactiveTrackColor: Colors.grey.withOpacity(0.3),
+                            thumbColor: Colors.white,
+                            overlayColor: Colors.purple.withOpacity(0.3),
+                            trackHeight: 4,
+                          ),
+                          child: Slider(
+                            value: _currentVolume,
+                            min: 0.0,
+                            max: 1.0,
+                            onChanged: (value) {
+                              setState(() {
+                                _currentVolume = value;
+                              });
+                              widget.audioPlayerService.setVolume(value);
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '${(_currentVolume * 100).round()}%',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                SliderTheme(
-                  data: SliderThemeData(
-                    activeTrackColor: Colors.white,
-                    inactiveTrackColor: Colors.grey.withOpacity(0.3),
-                    thumbColor: Colors.white,
-                    overlayColor: Colors.purple.withOpacity(0.3),
-                    trackHeight: 4,
                   ),
-                  child: Slider(
-                    value: _currentVolume,
-                    min: 0.0,
-                    max: 1.0,
-                    onChanged: (value) {
-                      setState(() {
-                        _currentVolume = value;
-                      });
-                      widget.audioPlayerService.setVolume(value);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '${(_currentVolume * 100).round()}%',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
             ),
           ),
-        ),
-      ),
     );
-  }  IconData _getVolumeIcon() {
+  }
+
+  IconData _getVolumeIcon() {
     if (_currentVolume == 0) return Icons.volume_off;
     if (_currentVolume < 0.5) return Icons.volume_down;
     return Icons.volume_up;
   }
 
   @override
-@override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final safeAreaTop = MediaQuery.of(context).padding.top;
@@ -179,10 +228,7 @@ void _showVolumeDialog() {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.purple.shade800,
-            Colors.transparent,
-          ],
+          colors: [Colors.purple.shade800, Colors.black],
           stops: const [0.2, 0.8],
         ),
       ),
@@ -212,10 +258,11 @@ void _showVolumeDialog() {
                   child: Image.network(
                     currentSong?.coverUrl ?? '',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey[900],
-                      child: const Icon(Icons.music_note, size: 80),
-                    ),
+                    errorBuilder:
+                        (_, __, ___) => Container(
+                          color: Colors.grey[900],
+                          child: const Icon(Icons.music_note, size: 80),
+                        ),
                   ),
                 ),
               ),
@@ -228,9 +275,9 @@ void _showVolumeDialog() {
                   Text(
                     currentSong?.title ?? 'No Track Selected',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -239,8 +286,8 @@ void _showVolumeDialog() {
                   Text(
                     currentSong?.artist ?? 'Unknown Artist',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
+                      color: Colors.white.withOpacity(0.7),
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -257,7 +304,9 @@ void _showVolumeDialog() {
                       inactiveTrackColor: Colors.white.withOpacity(0.2),
                       thumbColor: Colors.white,
                       trackHeight: 4,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 6,
+                      ),
                     ),
                     child: Slider(
                       value: position.inSeconds.toDouble(),
@@ -277,11 +326,15 @@ void _showVolumeDialog() {
                       children: [
                         Text(
                           _formatDuration(position),
-                          style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
                         ),
                         Text(
                           _formatDuration(duration),
-                          style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
                         ),
                       ],
                     ),
@@ -304,10 +357,11 @@ void _showVolumeDialog() {
                 IconButton(
                   icon: Icon(
                     Icons.favorite,
-                    color: currentSong?.isFavorite ?? false
-                        ? Colors.purple[400]
-                        : Colors.white.withOpacity(0.7),
-                    size: 24,
+                    color:
+                        currentSong?.isFavorite ?? false
+                            ? Colors.purple[400]
+                            : Colors.white.withOpacity(0.7),
+                    size: 34,
                   ),
                   onPressed: () {
                     if (currentSong != null) {
@@ -315,6 +369,14 @@ void _showVolumeDialog() {
                       setState(() {});
                     }
                   },
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.share,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 24,
+                  ),
+                  onPressed: _showShareOptions,
                 ),
               ],
             ),
@@ -325,9 +387,10 @@ void _showVolumeDialog() {
                 IconButton(
                   icon: Icon(
                     Icons.shuffle,
-                    color: _isShuffleOn
-                        ? Colors.purple[400]
-                        : Colors.white.withOpacity(0.7),
+                    color:
+                        _isShuffleOn
+                            ? Colors.purple[400]
+                            : Colors.white.withOpacity(0.7),
                     size: 24,
                   ),
                   onPressed: () {
@@ -336,7 +399,7 @@ void _showVolumeDialog() {
                   },
                 ),
                 IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.skip_previous,
                     color: Colors.white,
                     size: 40,
@@ -369,7 +432,7 @@ void _showVolumeDialog() {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.skip_next,
                     color: Colors.white,
                     size: 40,
@@ -378,26 +441,14 @@ void _showVolumeDialog() {
                 ),
                 IconButton(
                   icon: Icon(
-                    _loopMode == LoopMode.off
-                        ? Icons.repeat
-                        : _loopMode == LoopMode.one
-                            ? Icons.repeat_one
-                            : Icons.repeat,
-                    color: _loopMode != LoopMode.off
-                        ? Colors.purple[400]
-                        : Colors.white.withOpacity(0.7),
+                    _getLoopModeIcon(),
+                    color:
+                        _loopMode != LoopMode.off
+                            ? Colors.purple[400]
+                            : Color.fromRGBO(255, 255, 255, 0.7),
                     size: 24,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _loopMode = _loopMode == LoopMode.off
-                          ? LoopMode.all
-                          : _loopMode == LoopMode.all
-                              ? LoopMode.one
-                              : LoopMode.off;
-                    });
-                    widget.audioPlayerService.setLoopMode(_loopMode);
-                  },
+                  onPressed: _toggleLoopMode,
                 ),
               ],
             ),
@@ -407,6 +458,7 @@ void _showVolumeDialog() {
       ),
     );
   }
+
   IconData _getLoopModeIcon() {
     switch (_loopMode) {
       case LoopMode.off:
@@ -415,9 +467,7 @@ void _showVolumeDialog() {
         return Icons.repeat_one;
       case LoopMode.all:
         return Icons.repeat;
-      default:
-        return Icons.repeat;
-    }
+      }
   }
 
   void _toggleLoopMode() {
@@ -435,5 +485,10 @@ void _showVolumeDialog() {
       }
     });
     widget.audioPlayerService.setLoopMode(_loopMode);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

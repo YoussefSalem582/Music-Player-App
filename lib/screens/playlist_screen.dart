@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import '../models/playlist.dart';
 import '../models/song.dart';
 import '../services/audio_player_service.dart';
 
-class PlaylistScreen extends StatelessWidget {
+class PlaylistScreen extends StatefulWidget {
   final Playlist playlist;
   final Function(Song) onSongTap;
   final Song? currentSong;
@@ -12,6 +13,7 @@ class PlaylistScreen extends StatelessWidget {
   final AudioPlayerService audioPlayerService;
 
   const PlaylistScreen({
+    super.key,
     required this.playlist,
     required this.onSongTap,
     required this.currentSong,
@@ -21,18 +23,45 @@ class PlaylistScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildPlaylistHeader(context),
-        Expanded(child: _buildSongsList(context)),
-      ],
-    );
+  State<PlaylistScreen> createState() => _PlaylistScreenState();
+}
+
+class _PlaylistScreenState extends State<PlaylistScreen> {
+  late ScrollController _scrollController;
+  double _headerOpacity = 1.0;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()
+      ..addListener(_onScroll);
+    _isPlaying = widget.isPlaying;
   }
 
-  Widget _buildPlaylistHeader(BuildContext context) {
+  void _onScroll() {
+    final offset = _scrollController.offset;
+    setState(() {
+      _headerOpacity = (1 - (offset / 200)).clamp(0.0, 1.0);
+    });
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes;
+
+    if (hours > 0) {
+      return '$hours hr ${minutes % 60} min';
+    } else {
+      return '${minutes % 60} min';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalDuration = widget.playlist.getTotalDuration();
+
     return Container(
-      height: 200,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -43,44 +72,78 @@ class PlaylistScreen extends StatelessWidget {
           ],
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildHeader(totalDuration),
+          _buildPlaylistControls(),
+          _buildSongsList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(Duration totalDuration) {
+    return SliverAppBar(
+      expandedHeight: 300,
+      pinned: true,
+      stretch: true,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
           children: [
-            Text(
-              playlist.name,
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+            Opacity(
+              opacity: _headerOpacity,
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      widget.playlist.coverUrl ??
+                          widget.playlist.songs.first.coverUrl,
+                    ),
+                    fit: BoxFit.cover,
                   ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  '${playlist.songCount} songs',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.8),
-                      ),
                 ),
-                const SizedBox(width: 16),
-                Text(
-                  _formatDuration(playlist.getTotalDuration()),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.8),
-                      ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _buildPlayButton(context),
-                const SizedBox(width: 16),
-                _buildShuffleButton(context),
-              ],
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.playlist.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${widget.playlist.songs.length} songs • ${_formatDuration(totalDuration)}',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -88,113 +151,151 @@ class PlaylistScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlayButton(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: () => onSongTap(playlist.songs.first),
-      icon: const Icon(Icons.play_arrow, color: Colors.white),
-      label: const Text(
-        'Play All',
-        style: TextStyle(color: Colors.white),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.purple.shade400,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShuffleButton(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: () {
-        final shuffledSongs = playlist.shuffledSongs;
-        onSongTap(shuffledSongs.first);
-      },
-      icon: const Icon(Icons.shuffle, color: Colors.white),
-      label: const Text(
-        'Shuffle',
-        style: TextStyle(color: Colors.white),
-      ),
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Colors.white),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSongsList(BuildContext context) {
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      itemCount: playlist.songs.length,
-      itemBuilder: (context, index) {
-        final song = playlist.songs[index];
-        final isCurrentSong = currentSong?.url == song.url;
-
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Stack(
-              children: [
-                Image.network(
-                  song.coverUrl,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
+  Widget _buildPlaylistControls() {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      sliver: SliverToBoxAdapter(
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.purple.shade400, Colors.purple.shade700],
                 ),
-                if (isCurrentSong)
-                  Container(
-                    width: 56,
-                    height: 56,
-                    color: Colors.black.withOpacity(0.5),
-                    child: Icon(
-                      isPlaying ? Icons.equalizer : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purple.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-              ],
+                ],
+              ),
+              child: IconButton(
+                icon: Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white,
+                  size: 32,
+                ),
+                onPressed: () {
+                  setState(() => _isPlaying = !_isPlaying);
+                  widget.onPlayPause();
+                },
+              ),
             ),
-          ),
-          title: Text(
-            song.title,
-            style: TextStyle(
-              color: isCurrentSong ? Colors.purple.shade400 : Colors.white,
-              fontWeight: isCurrentSong ? FontWeight.bold : FontWeight.normal,
+            const SizedBox(width: 20),
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.shuffle,
+                  color: Colors.white.withOpacity(0.7),
+                  size: 24,
+                ),
+                onPressed: () => widget.audioPlayerService.shuffle(),
+              ),
             ),
-          ),
-          subtitle: Text(
-            song.artist,
-            style: TextStyle(
-              color: isCurrentSong
-                  ? Colors.purple.shade400.withOpacity(0.7)
-                  : Colors.white.withOpacity(0.7),
+            const SizedBox(width: 20),
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
+              ),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.repeat,
+                  color: Colors.white70,
+                  size: 24,
+                ),
+                onPressed: () => widget.audioPlayerService
+                    .setLoopMode(LoopMode.all),
+              ),
             ),
-          ),
-          trailing: IconButton(
-            icon: Icon(
-              Icons.more_vert,
-              color: Colors.white.withOpacity(0.7),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSongsList() {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final song = widget.playlist.songs[index];
+          final isCurrentSong = widget.currentSong?.url == song.url;
+
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 8,
             ),
-            onPressed: () => _showSongOptions(context, song),
-          ),
-          onTap: () => onSongTap(song),
-        );
-      },
+            leading: Hero(
+              tag: song.url,
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    song.coverUrl,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            title: Text(
+              song.title,
+              style: TextStyle(
+                color: isCurrentSong ? Colors.purple[400] : Colors.white,
+                fontWeight: isCurrentSong ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            subtitle: Text(
+              song.artist,
+              style: TextStyle(
+                color: isCurrentSong
+                    ? Colors.purple[400]?.withOpacity(0.7)
+                    : Colors.white.withOpacity(0.7),
+              ),
+            ),
+            trailing: IconButton(
+              icon: Icon(
+                Icons.more_vert,
+                color: Colors.white.withOpacity(0.7),
+              ),
+              onPressed: () => _showSongOptions(context, song),
+            ),
+            onTap: () => widget.onSongTap(song),
+          );
+        },
+        childCount: widget.playlist.songs.length,
+      ),
     );
   }
 
   void _showSongOptions(BuildContext context, Song song) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Colors.grey[900],
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -207,20 +308,17 @@ class PlaylistScreen extends StatelessWidget {
               'Add to playlist',
               style: TextStyle(color: Colors.white),
             ),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Implement add to playlist
-            },
+            onTap: () => Navigator.pop(context),
           ),
           ListTile(
             leading: const Icon(Icons.favorite_border, color: Colors.white),
             title: const Text(
-              'Add to favorites',
+              'Like',
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
+              widget.audioPlayerService.toggleFavorite(song);
               Navigator.pop(context);
-              // TODO: Implement add to favorites
             },
           ),
           ListTile(
@@ -229,24 +327,16 @@ class PlaylistScreen extends StatelessWidget {
               'Share',
               style: TextStyle(color: Colors.white),
             ),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Implement share
-            },
+            onTap: () => Navigator.pop(context),
           ),
         ],
       ),
     );
   }
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final hours = duration.inHours;
-
-    if (hours > 0) {
-      return '$hours hr ${minutes % 60} min';
-    } else {
-      return '$minutes min';
-    }
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }
