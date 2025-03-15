@@ -6,8 +6,7 @@ class MusicApiService {
   static const String _baseUrl =
       'https://storage.googleapis.com/uamp/catalog.json';
 
-  // dart
-  Future<List<Song>> fetchSongs({int limit = 50}) async {
+  Future<List<Song>> fetchSongs({int limit = 200}) async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 
@@ -25,6 +24,7 @@ class MusicApiService {
                       coverUrl:
                           track['image'] ??
                           'https://picsum.photos/300/300?random=${track['id']}',
+                      genre: _mapGenre(track['genre']),
                     ),
                   )
                   .toList();
@@ -37,6 +37,45 @@ class MusicApiService {
     }
 
     return _fallbackSongs;
+  }
+
+  MusicGenre? _mapGenre(String? genre) {
+    switch (genre?.toLowerCase()) {
+      case 'pop':
+        return MusicGenre.pop;
+      case 'rock':
+        return MusicGenre.rock;
+      case 'jazz':
+        return MusicGenre.jazz;
+      case 'classical':
+        return MusicGenre.classical;
+      case 'electronic':
+        return MusicGenre.electronic;
+      case 'hiphop':
+        return MusicGenre.hiphop;
+      case 'rnb':
+        return MusicGenre.rnb;
+      case 'country':
+        return MusicGenre.country;
+      case 'latino':
+        return MusicGenre.latino;
+      case 'indie':
+        return MusicGenre.indie;
+      case 'metal':
+        return MusicGenre.metal;
+      case 'blues':
+        return MusicGenre.blues;
+      case 'folk':
+        return MusicGenre.folk;
+      case 'reggae':
+        return MusicGenre.reggae;
+      case 'soul':
+        return MusicGenre.soul;
+      case 'funk':
+        return MusicGenre.funk;
+      default:
+        return null;
+    }
   }
 
   List<Song> get _fallbackSongs => [
@@ -140,7 +179,6 @@ class MusicApiService {
       moods: [MusicMood.energetic, MusicMood.angry],
       bpm: 160,
     ),
-    // Additional songs
     Song(
       title: 'Indie Waves',
       artist: 'The Indie Band',
@@ -180,6 +218,27 @@ class MusicApiService {
       genre: MusicGenre.funk,
       moods: [MusicMood.energetic, MusicMood.happy],
       bpm: 115,
+    ),
+    // Additional songs
+    Song(
+      title: 'Chill Vibes',
+      artist: 'Chillout Lounge',
+      url: 'https://storage.googleapis.com/music-samples/chill-vibes.mp3',
+      coverUrl:
+          'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500',
+      genre: MusicGenre.electronic,
+      moods: [MusicMood.relaxed, MusicMood.dreamy],
+      bpm: 90,
+    ),
+    Song(
+      title: 'Dance Party',
+      artist: 'DJ Mix',
+      url: 'https://storage.googleapis.com/music-samples/dance-party.mp3',
+      coverUrl:
+          'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500',
+      genre: MusicGenre.electronic,
+      moods: [MusicMood.energetic, MusicMood.happy],
+      bpm: 130,
     ),
   ];
 }
