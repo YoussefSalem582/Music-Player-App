@@ -67,7 +67,7 @@ Minimum SDK Version: 3.7.0
 ## Screenshots
 
 ### Home Screen
-<img src="app design/img_14.png" width="300" alt="Home Screen">
+<img src="img_14.png" width="300" alt="Home Screen">
 
 - Gradient-based modern UI design
 - Featured song banner with cover art
@@ -76,7 +76,7 @@ Minimum SDK Version: 3.7.0
 - Customizable theme colors
 
 ### Now Playing
-<img src="app design/img_15.png" width="300" alt="Music Player Screen">
+<img src="img_15.png" width="300" alt="Music Player Screen">
 
 - Full-screen player with album artwork
 - High-resolution cover art display
@@ -86,7 +86,7 @@ Minimum SDK Version: 3.7.0
 - Options for shuffle and repeat modes
 
 ### Playlist View  
-<img src="app design/img_16.png" width="300" alt="Playlist Screen">
+<img src="img_16.png" width="300" alt="Playlist Screen">
 
 - Collapsible playlist header
 - Smooth scrolling song list
@@ -95,7 +95,7 @@ Minimum SDK Version: 3.7.0
 - Dynamic playlist controls
 
 ### Liked Songs
-<img src="app design/img_17.png" width="300" alt="Liked Songs Screen">
+<img src="img_17.png" width="300" alt="Liked Songs Screen">
 
 - List of favorite songs
 - Track info with album art
