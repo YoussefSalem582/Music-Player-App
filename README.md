@@ -67,7 +67,7 @@ Minimum SDK Version: 3.7.0
 ## Screenshots
 
 ### Home Screen
-<img src="app%20design/img_14.png" width="300" alt="Home Screen">
+<img src="app%20design/Home Page.png" width="300" alt="Home Screen">
 
 - Gradient-based modern UI design
 - Featured song banner with cover art
